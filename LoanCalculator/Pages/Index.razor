@@ -1,3 +1,80 @@
 ﻿@page "/"
 
-<Calculator></Calculator>
+@inject Sotsera.Blazor.Toaster.IToaster Toaster
+
+<AuthorizeView>
+    <Authorized>
+        <Calculator></Calculator>
+    </Authorized>
+    <NotAuthorized>
+        <h1>
+            Welcome to the Personal Loan Calculator and Tracker
+        </h1>
+        <div>
+            <p>
+                Login to review your loans you're currently tracking or enter more loans to track.
+            </p>
+            <button class="btn btn-success" @onclick="@(() => Show(ToastType.Success))">Success</button>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code{
+    string title = "Test Title";
+    string message = "Test Message";
+
+    //toast options
+    int maximumOpacity;
+    bool escapeHtml;
+    bool requireInteraction;
+    bool showProgressBar;
+    bool showCloseIcon;
+    bool actionOnClick;
+
+    //transitions
+    int showTransitionDuration;
+    int visibleStateDuration;
+    int hideTransitionDuration;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        maximumOpacity = Toaster.Configuration.MaximumOpacity;
+        escapeHtml = Toaster.Configuration.EscapeHtml;
+        requireInteraction = Toaster.Configuration.RequireInteraction;
+        showProgressBar = Toaster.Configuration.ShowProgressBar;
+        showCloseIcon = Toaster.Configuration.ShowCloseIcon;
+
+        showTransitionDuration = Toaster.Configuration.ShowTransitionDuration;
+        visibleStateDuration = Toaster.Configuration.VisibleStateDuration;
+        hideTransitionDuration = Toaster.Configuration.HideTransitionDuration;
+
+    }
+
+    void Show(ToastType type)
+    {
+        Toaster.Add(type, message, title, config =>
+        {
+            config.MaximumOpacity = maximumOpacity;
+            config.EscapeHtml = escapeHtml;
+            config.RequireInteraction = requireInteraction;
+            config.ShowProgressBar = showProgressBar;
+            config.ShowCloseIcon = showCloseIcon;
+
+            if (actionOnClick)
+            {
+                config.Onclick = toast =>
+                {
+                    Console.WriteLine($"Title: \"{toast.Title}\"; message: \"{toast.Message}\"; Type: {toast.Type}");
+                    return Task.CompletedTask;
+                };
+            }
+
+            config.ShowTransitionDuration = showTransitionDuration;
+            config.VisibleStateDuration = visibleStateDuration;
+            config.HideTransitionDuration = hideTransitionDuration;
+
+        });
+    }
+}

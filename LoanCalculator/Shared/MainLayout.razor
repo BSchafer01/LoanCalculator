@@ -1,13 +1,18 @@
 ﻿@inherits LayoutComponentBase
+<AuthorizeView>
+    <Authorized>
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+    </Authorized>
+</AuthorizeView>
 
-<div class="sidebar">
-    <NavMenu />
-</div>
 
 <div class="main">
-    <div class="top-row px-4 auth">
+    <div class="top-row px-4 auth navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="">Amortization Calculator</a>
         <LoginDisplay />
-        <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        <a href="https://github.com/BSchafer01/BSCustomFixedLoanCalculator" target="_blank"><i class="fab fa-github fa-2x" /></a>
     </div>
 
     <div class="content px-4">
