@@ -1,8 +1,6 @@
 ﻿@page "/loan"
 @page "/loan/{LoanId:int}"
 
-@inject Sotsera.Blazor.Toaster.IToaster Toaster
-
 
 <AuthorizeView>
     <Authorized>
@@ -22,66 +20,4 @@
     [Parameter]
     public int LoanId { get; set; }
 
-
-    string title = "Test Title";
-    string message = "Test Message";
-
-    //toast options
-    int maximumOpacity;
-    bool escapeHtml;
-    bool requireInteraction;
-    bool showProgressBar;
-    bool showCloseIcon;
-    bool actionOnClick;
-
-    //transitions
-    int showTransitionDuration;
-    int visibleStateDuration;
-    int hideTransitionDuration;
-
-
-
-    protected async override Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
-
-        maximumOpacity = Toaster.Configuration.MaximumOpacity;
-        escapeHtml = Toaster.Configuration.EscapeHtml;
-        requireInteraction = Toaster.Configuration.RequireInteraction;
-        showProgressBar = Toaster.Configuration.ShowProgressBar;
-        showCloseIcon = Toaster.Configuration.ShowCloseIcon;
-
-        showTransitionDuration = Toaster.Configuration.ShowTransitionDuration;
-        visibleStateDuration = Toaster.Configuration.VisibleStateDuration;
-        hideTransitionDuration = Toaster.Configuration.HideTransitionDuration;
-
-
-
-    }
-
-    void Show(ToastType type)
-    {
-        Toaster.Add(type, message, title, config =>
-        {
-            config.MaximumOpacity = maximumOpacity;
-            config.EscapeHtml = escapeHtml;
-            config.RequireInteraction = requireInteraction;
-            config.ShowProgressBar = showProgressBar;
-            config.ShowCloseIcon = showCloseIcon;
-
-            if (actionOnClick)
-            {
-                config.Onclick = toast =>
-                {
-                    Console.WriteLine($"Title: \"{toast.Title}\"; message: \"{toast.Message}\"; Type: {toast.Type}");
-                    return Task.CompletedTask;
-                };
-            }
-
-            config.ShowTransitionDuration = showTransitionDuration;
-            config.VisibleStateDuration = visibleStateDuration;
-            config.HideTransitionDuration = hideTransitionDuration;
-
-        });
-    }
 }
