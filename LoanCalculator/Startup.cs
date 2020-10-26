@@ -39,10 +39,22 @@ namespace LoanCalculator
                 config.PreventDuplicates = true;
                 config.NewestOnTop = false;
             });
-            services.AddDbContext<ApplicationDbContext>(options =>
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") =="Production")
             {
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
-            });
+                services.AddDbContext<ApplicationDbContext>(options =>
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("Azure"));
+                });
+            }
+            else
+            {
+                services.AddDbContext<ApplicationDbContext>(options =>
+                {
+                    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+                });
+            }
+            
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             services.AddRazorPages();

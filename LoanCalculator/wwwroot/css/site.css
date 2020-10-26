@@ -63,6 +63,7 @@ body {
     background-color: #353A40;
     border-radius: 1rem;
     color: white;
+    width: 60%;
 }
 
     .loanExplainDesc h4 {
@@ -80,6 +81,7 @@ body {
     text-align: center;
     margin: 2rem;
     vertical-align: middle;
+    width: 45%;
 }
 
 .whatIfExplain__img {
@@ -115,7 +117,7 @@ body {
     display: inline-block;
     text-align: center;
     margin: 2rem;
-    width: 60%;
+    width: 55%;
     vertical-align: middle;
 }
 
