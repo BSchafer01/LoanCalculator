@@ -1,6 +1,10 @@
-﻿<AuthorizeView>
+﻿@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<AuthorizeView>
     <Authorized>
-        <a href="Identity/Account/Manage">Hello, @context.User.Identity.Name!</a>
+
+        @*<a href="Identity/Account/Manage">Hello, @FName!</a>*@
         <form method="post" action="Identity/Account/LogOut">
             <button type="submit" class="nav-link btn btn-link">Log out</button>
         </form>
@@ -10,3 +14,27 @@
         <a href="Identity/Account/Login">Log in</a>
     </NotAuthorized>
 </AuthorizeView>
+
+
+@code{
+    [CascadingParameter]
+    private Task<AuthenticationState> authState { get; set; }
+    private System.Security.Claims.ClaimsPrincipal principal;
+    [Parameter]
+    public string FName { get; set; }
+    protected override async Task OnParametersSetAsync()
+    {
+        //if (authState != null)
+        //{
+        //    principal = (await authState).User;
+        //    ApplicationUser currentUser = await UserManager.GetUserAsync(principal) as ApplicationUser;
+        //    if (currentUser != null)
+        //    {
+        //        FName = currentUser.FName;
+        //    }
+
+        //}
+
+    }
+
+}

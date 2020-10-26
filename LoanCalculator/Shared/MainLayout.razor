@@ -1,21 +1,21 @@
 ﻿@inherits LayoutComponentBase
-<AuthorizeView>
-    <Authorized>
-        <div class="sidebar">
-            <NavMenu />
-        </div>
-    </Authorized>
-</AuthorizeView>
+@*<AuthorizeView>
+        <Authorized>
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+        </Authorized>
+    </AuthorizeView>*@
 
 
 <div class="main">
     <div class="top-row px-4 auth navbar navbar-dark bg-dark">
-        <a class="navbar-brand" href="">Amortization Calculator</a>
+        <a class="navbar-brand" href="">Personal Loan Tracker</a>
         <LoginDisplay />
-        <a href="https://github.com/BSchafer01/BSCustomFixedLoanCalculator" target="_blank"><i class="fab fa-github fa-2x" /></a>
+        <a href="https://github.com/BSchafer01/LoanCalculator" target="_blank"><i class="fab fa-github fa-2x" /></a>
     </div>
 
-    <div class="content px-4">
+    <div class="content">
         @Body
     </div>
 </div>

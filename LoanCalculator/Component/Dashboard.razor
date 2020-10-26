@@ -1,0 +1,157 @@
+﻿@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject IUserLoanService service
+@inject NavigationManager NavManager
+
+
+<h3 style="text-align:center; margin-top: 3rem;">Hello, @FName!</h3>
+<h5 style="text-align:center; margin-bottom:2rem; ">Welcome to your dashboard!</h5>
+<div class="card-container">
+    <input type="button" class="btn btn-success add-loan" @onclick="(() => NewLoan())" value="Add a Loan" />
+    <div class="card dashboard dash-one">
+        <h2>@loanCount</h2>
+        @if (loanCount == 1)
+        {<p>Loan Tracked </p>}
+        else
+        {<p>Loans Tracked </p>}
+    </div>
+    <div class="card dashboard dash-two">
+        <h2>@string.Format("{0:C}", totalMonthly)</h2>
+        <p>Total Monthly Payment</p>
+    </div>
+    <div class="card dashboard dash-three">
+        <h2>@string.Format("{0:C}", totalAddl)</h2>
+        <p>Total Monthly Payment <br />w/ Additional Principal</p>
+    </div>
+</div>
+
+
+
+@if (loans == null || loans.Count == 0)
+{
+    <h5 style="text-align:center;"><em>You're not tracking any loans yet!</em></h5>
+}
+else
+{
+    <div class="table-responsive tableFixHead">
+        <table class="table table-hover table-striped table-bordered table-sm dash-table tableLoan">
+            <thead>
+                <tr>
+                    <th scope="col">Loan</th>
+                    <th scope="col">Principal</th>
+                    <th scope="col">Interest Rate</th>
+                    <th scope="col">Term (Months)</th>
+                    <th scope="col">Base Payment</th>
+                    <th scope="col">Additional Payment</th>
+                    <th scope="col">Modifications</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (UserLoans loan in loans)
+                {
+                    <tr>
+                        <th scope="row">@loan.LoanName</th>
+                        <td>@string.Format("{0:C}", loan.LoanAmount)</td>
+                        <td>@loan.InterestRate%</td>
+                        <td>@loan.LoanTerm</td>
+                        <td>@string.Format("{0:C}", CalculatePayment(loan))</td>
+                        <td>@string.Format("{0:C}", loan.AdditionalPrincipal)</td>
+                        <td><input type="button" class="btn btn-primary" @onclick="(() => Edit(loan.Id))" style="margin-right: 0.5rem; margin-bottom: 0.25rem; margin-top: 0.25rem; margin-left:0.25rem;"value="View/Edit" /><input type="button" class="btn btn-danger" @onclick="(() => Delete(loan.Id))" value="Delete" /></td>
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authState { get; set; }
+    private System.Security.Claims.ClaimsPrincipal principal;
+    [Parameter]
+    public string FName { get; set; }
+    List<UserLoans> loans;
+    private int loanCount = 0;
+    private decimal totalMonthly = 0;
+    private decimal totalAddl = 0;
+
+    ApplicationUser currentUser;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (authState != null)
+        {
+            principal = (await authState).User;
+            currentUser = await UserManager.GetUserAsync(principal) as ApplicationUser;
+            if (currentUser != null)
+            {
+                FName = currentUser.FName;
+                loans = await service.GetByUser(currentUser);
+                loanCount = 0;
+                totalMonthly = 0;
+                totalAddl = 0;
+                UpdateCards(loans);
+
+            }
+
+        }
+
+    }
+
+    private void Edit(int id)
+    {
+        NavManager.NavigateTo($"/loan/{id}");
+    }
+
+    private async Task Delete(int id)
+    {
+        await service.Delete(id);
+        loans = await service.GetByUser(currentUser);
+        loanCount = 0;
+        totalMonthly = 0;
+        totalAddl = 0;
+        UpdateCards(loans);
+        this.StateHasChanged();
+    }
+
+    private void NewLoan()
+    {
+        NavManager.NavigateTo($"/loan");
+    }
+
+    private decimal CalculatePayment(UserLoans loan)
+    {
+        DisplayLoanConditions l = new DisplayLoanConditions()
+        {
+            LoanName = loan.LoanName,
+            AdditionalPrincipal = loan.AdditionalPrincipal,
+            Balance = loan.LoanAmount,
+            Rate = loan.InterestRate,
+            Term = loan.LoanTerm
+        };
+        List<IMonthlyResults> monthly = Methods.CalculateResults(l);
+        return monthly[0].TotalPayment;
+    }
+
+    private void UpdateCards(List<UserLoans> loans)
+    {
+        if (loans.Count > 0)
+        {
+            loanCount = loans.Count;
+            foreach (UserLoans loan in loans)
+            {
+                decimal mon = CalculatePayment(loan);
+                totalMonthly += mon;
+                totalAddl += mon + loan.AdditionalPrincipal;
+            }
+        }
+        else
+        {
+            loanCount = 0;
+            totalMonthly = 0;
+            totalAddl = 0;
+        }
+    }
+
+}

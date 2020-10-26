@@ -1,80 +1,67 @@
 ﻿@page "/"
+@page "/{LoanId:int}"
 
-@inject Sotsera.Blazor.Toaster.IToaster Toaster
+@inject NavigationManager NavManager
+
 
 <AuthorizeView>
     <Authorized>
-        <Calculator></Calculator>
+        <Dashboard></Dashboard>
     </Authorized>
     <NotAuthorized>
-        <h1>
-            Welcome to the Personal Loan Calculator and Tracker
-        </h1>
-        <div>
-            <p>
-                Login to review your loans you're currently tracking or enter more loans to track.
-            </p>
-            <button class="btn btn-success" @onclick="@(() => Show(ToastType.Success))">Success</button>
-        </div>
+        <body class="white-body">
+            <section class="banner">
+                <h2>
+                    Welcome to Personal Loan Tracker
+                </h2>
+
+                <p>
+                    Your one-stop shop for calculating and managing loans
+                </p>
+            </section>
+            <div class="firstSection">
+                <section class="loanExplain">
+                    <img src="images/loanInputs.png" alt="Alternate Text" class="loanExplain__img" />
+                </section>
+                <section class="loanExplainDesc">
+                    <h4>Amortization Calculations</h4>
+                    <p>Input simple parameters to automatically calculate the amortization of any simple loan</p>
+                </section>
+            </div>
+
+            <div class="secondSection">
+                <section class="whatIfExplainDesc">
+                    <h4>Perform What If Analysis</h4>
+                    <p>Add the optional "Additional Principal" value to see how much you will save in interested by paying a little extra each time</p>
+                </section>
+                <section class="whatIfExplain">
+                    <img src="images/whatIf.png" alt="Alternate Text" class="whatIfExplain__img" />
+                </section>
+            </div>
+
+            <div class="thirdSection">
+                <section class="DashboardExplain">
+                    <img src="images/Dashboard.png" alt="Alternate Text" class="DashboardExplain__img" />
+                </section>
+                <section class="DashboardExplainDesc">
+                    <h4>Dashboard Overview</h4>
+                    <p>Save multiple loans and review the total monthly impact at a glance with the minimalist dashboard</p>
+                </section>
+            </div>
+            <div class="ctaSection">
+                <section class="cta">
+                    <a class="cta-btn btn btn-primary" href="Identity/Account/Register">Register Today!</a>
+                </section>
+            </div>
+
+        </body>
     </NotAuthorized>
 </AuthorizeView>
 
 @code{
-    string title = "Test Title";
-    string message = "Test Message";
 
-    //toast options
-    int maximumOpacity;
-    bool escapeHtml;
-    bool requireInteraction;
-    bool showProgressBar;
-    bool showCloseIcon;
-    bool actionOnClick;
 
-    //transitions
-    int showTransitionDuration;
-    int visibleStateDuration;
-    int hideTransitionDuration;
+    [Parameter]
+    public int LoanId { get; set; }
 
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-
-        maximumOpacity = Toaster.Configuration.MaximumOpacity;
-        escapeHtml = Toaster.Configuration.EscapeHtml;
-        requireInteraction = Toaster.Configuration.RequireInteraction;
-        showProgressBar = Toaster.Configuration.ShowProgressBar;
-        showCloseIcon = Toaster.Configuration.ShowCloseIcon;
-
-        showTransitionDuration = Toaster.Configuration.ShowTransitionDuration;
-        visibleStateDuration = Toaster.Configuration.VisibleStateDuration;
-        hideTransitionDuration = Toaster.Configuration.HideTransitionDuration;
-
-    }
-
-    void Show(ToastType type)
-    {
-        Toaster.Add(type, message, title, config =>
-        {
-            config.MaximumOpacity = maximumOpacity;
-            config.EscapeHtml = escapeHtml;
-            config.RequireInteraction = requireInteraction;
-            config.ShowProgressBar = showProgressBar;
-            config.ShowCloseIcon = showCloseIcon;
-
-            if (actionOnClick)
-            {
-                config.Onclick = toast =>
-                {
-                    Console.WriteLine($"Title: \"{toast.Title}\"; message: \"{toast.Message}\"; Type: {toast.Type}");
-                    return Task.CompletedTask;
-                };
-            }
-
-            config.ShowTransitionDuration = showTransitionDuration;
-            config.VisibleStateDuration = visibleStateDuration;
-            config.HideTransitionDuration = hideTransitionDuration;
-
-        });
-    }
 }

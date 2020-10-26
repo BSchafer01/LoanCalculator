@@ -1,4 +1,5 @@
 ﻿@page "/counter"
+@page "/counter/{Start:int}"
 
 <h1>Counter</h1>
 
@@ -7,7 +8,16 @@
 <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
 @code {
+    [Parameter]
+    public int Start { get; set; } 
+
     private int currentCount = 0;
+
+    protected override void OnParametersSet()
+    {
+        currentCount = Start;
+        base.OnParametersSet();
+    }
 
     private void IncrementCount()
     {

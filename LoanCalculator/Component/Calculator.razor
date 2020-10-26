@@ -1,144 +1,278 @@
 ﻿@inject IJSRuntime jsRunTime;
+@inject UserManager<IdentityUser> UserManager
+@inject IUserLoanService service
+@inject NavigationManager NavManager
 
+@if (loanId > 0)
+{
     <div class="input-chart">
-        <EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary Model="@loan" />
-            <div class="container">
-                <label id="balanceLabel" for="balanceText" data-toggle="tooltip" data-placement="top" title="Enter a loan amount between $10 and $1,000,000,000.">Loan Amount</label>
-                <InputNumber @bind-Value="loan.Balance" class="form-control" id="balanceText" />
-                <ValidationMessage id="balanceMessage" For="@(() => loan.Balance)" class="text-danger" />
+        <div>
+            <EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary Model="@loan" />
+                <div class="container">
+                    <label id="nameLabel" for="nameText" data-toggle="tooltip" data-placement="top" title="Enter a name for this loan.">Loan Name</label>
+                    <InputText @bind-Value="loan.LoanName" class="form-control" id="nameText" />
+                    <ValidationMessage id="nameMessage" For="@(() => loan.LoanName)" class="text-danger" />
 
-                <label id="rateLabel" for="rateSlider" data-toggle="tooltip" data-placement="top" title="Enter an interest rate between 0 and 35 percent.">Loan Rate</label>
-                <InputNumber id="rateText" @bind-Value="loan.Rate" class="form-control" max="35" min="0" step="0.05"></InputNumber>
-                <ValidationMessage id="rateMessage" For="@(() => loan.Rate)" class="text-danger" />
+                    <label id="balanceLabel" for="balanceText" data-toggle="tooltip" data-placement="top" title="Enter a loan amount between $10 and $1,000,000,000.">Loan Amount</label>
+                    <InputNumber @bind-Value="loan.Balance" class="form-control" id="balanceText" />
+                    <ValidationMessage id="balanceMessage" For="@(() => loan.Balance)" class="text-danger" />
 
-                <label id="termLabel" for="termSlider" data-toggle="tooltip" data-placement="top" title="Enter the loan term in months between 1 and 480.">Loan Term</label>
-                <InputNumber id="termText" @bind-Value="loan.Term" class="form-control" max="480" min="0" step="6"></InputNumber>
-                <ValidationMessage id="termMessage" For="@(() => loan.Term)" class="text-danger" />
+                    <label id="rateLabel" for="rateSlider" data-toggle="tooltip" data-placement="top" title="Enter an interest rate between 0 and 35 percent.">Loan Rate</label>
+                    <InputNumber id="rateText" @bind-Value="loan.Rate" class="form-control" max="35" min="0" step="0.05"></InputNumber>
+                    <ValidationMessage id="rateMessage" For="@(() => loan.Rate)" class="text-danger" />
 
-                <label id="additionalLabel" for="additionalText" data-toggle="tooltip" data-placement="top" title="Enter any additional amount over the calculated payment you would like to apply to the principal">Additional Principal</label>
-                <InputNumber id="additionalText" @bind-Value="loan.AdditionalPrincipal" class="form-control" min="0"></InputNumber>
+                    <label id="termLabel" for="termSlider" data-toggle="tooltip" data-placement="top" title="Enter the loan term in months between 1 and 480.">Loan Term</label>
+                    <InputNumber id="termText" @bind-Value="loan.Term" class="form-control" max="480" min="0" step="6"></InputNumber>
+                    <ValidationMessage id="termMessage" For="@(() => loan.Term)" class="text-danger" />
 
-                <input type="submit" id="formSubmit" value="Calculate Payback" class="btn btn-primary" />
+                    <label id="additionalLabel" for="additionalText" data-toggle="tooltip" data-placement="top" title="Enter any additional amount over the calculated payment you would like to apply to the principal">Additional Principal</label>
+                    <InputNumber id="additionalText" @bind-Value="loan.AdditionalPrincipal" class="form-control" min="0"></InputNumber>
+
+                    <input type="submit" id="formSubmit" value="Calculate Payback" class="btn btn-primary" />
+                    <input type="button" id="backBtn" class="btn btn-outline-primary dash-btn" @onclick="(() => GoToDashboard())" value="Go To Dashboard" />
+                </div>
+
+            </EditForm>
+
+        </div>
+
+        @if (showTable)
+        {
+            <div class="results-container">
+                <h3 id="results-title">@loan.LoanName Metrics</h3>
+                <div id="base">
+                    <h4 id="basePayments">Base Payments</h4>
+                    <h5>Monthly Payment: </h5>
+                    <h5><b>@string.Format("{0:C}", results[0].TotalPayment)</b></h5>
+                    <h5>Final Payment: </h5>
+                    <h5><b>Month @results.Last().Month</b></h5>
+                    <h5>Total Interest: </h5>
+                    <h5><b>@string.Format("{0:C}", results.Last().TotalInterest)</b></h5>
+                    <h5></h5>
+                    <h5></h5>
+
+                </div>
+
+                <div id="additional">
+                    <h4 id="additionalPayments">Additional Payments</h4>
+                    <h5>Monthly Payment: </h5>
+                    <h5><b>@(string.Format("{0:C}", results[0].AdditionalInterest + results[0].AdditionalPrincipal))</b></h5>
+                    <h5>Early Payoff: </h5>
+                    <h5><b>Month @(results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().Month)</b></h5>
+                    <h5>Total Interest: </h5>
+                    <h5><b>@(string.Format("{0:C}", results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></h5>
+                    <h5>Total Savings: </h5>
+                    <h5><b>@(string.Format("{0:C}", results.Last().TotalInterest - results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></h5>
+                </div>
+
             </div>
-            
-        </EditForm>
-        @if(showTable){
-    <div class="results-container">
-        <h3 id="results-title">Key Metrics</h3>
-        <div id="base">
-            <h4 id="basePayments">Base Payments</h4>
-            <h5>Monthly Payment: </h5>
-            <h5><b>@string.Format("{0:C}", results[0].TotalPayment)</b></h5>
-            <h5>Final Payment: </h5>
-            <h5><b>Month @results.Last().Month</b></h5>
-            <h5>Total Interest: </h5>
-            <h5><b>@string.Format("{0:C}", results.Last().TotalInterest)</b></h5>
-            <h5></h5>
-            <h5></h5>
 
-        </div>
-
-        <div id="additional">
-            <h4 id="additionalPayments">Additional Payments</h4>
-            <h5>Monthly Payment: </h5>
-            <h5><b>@(string.Format("{0:C}", results[0].AdditionalInterest + results[0].AdditionalPrincipal))</b></h5>
-            <h5>Early Payoff: </h5>
-            <h5><b>Month @(results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().Month)</b></h5>
-            <h5>Total Interest: </h5>
-            <h5><b>@(string.Format("{0:C}", results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></h5>
-            <h5>Total Savings: </h5>
-            <h5><b>@(string.Format("{0:C}", results.Last().TotalInterest - results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></h5>
-        </div>
-        
-    </div>
-
-    }
+        }
         <div id="chartdiv"></div>
     </div>
 
-<br/>
-<br/>
+    <br />
+    <br />
 
-@if (showTable)
-{
-    <div class="table-responsive tableFixHead">
-        <table class="table table-hover table-striped table-bordered table-sm">
-            <thead>
-                <tr>
-                    <th scope="col" rowspan="2">Month</th>
-                    <th scope="col" colspan="6">Base Payment</th>
-                    @if (loan.AdditionalPrincipal > 0)
-                    {
-                        <th scope="col" colspan="6">Base Payment + Aditional to Principal</th>
-                    }
-                </tr>
-                <tr>
-                    <th scope="col">Payment</th>
-                    <th scope="col">Principal Paid</th>
-                    <th scope="col">Interest Paid</th>
-                    <th scope="col">Cumulative Interest</th>
-                    <th scope="col">Cumulative Payment</th>
-                    <th scope="col">Remaining Balance</th>
-                    @if (loan.AdditionalPrincipal > 0)
-                    {
+    @if (showTable)
+    {
+        <div class="table-responsive tableFixHead">
+            <table class="table table-hover table-striped table-bordered table-sm tableLoan">
+                <thead>
+                    <tr>
+                        <th scope="col" rowspan="2">Month</th>
+                        <th scope="col" colspan="6">Base Payment</th>
+                        @if (loan.AdditionalPrincipal > 0)
+                        {
+                            <th scope="col" colspan="6">Base Payment + Aditional to Principal</th>
+                        }
+                    </tr>
+                    <tr>
                         <th scope="col">Payment</th>
                         <th scope="col">Principal Paid</th>
                         <th scope="col">Interest Paid</th>
                         <th scope="col">Cumulative Interest</th>
                         <th scope="col">Cumulative Payment</th>
                         <th scope="col">Remaining Balance</th>
-                    }
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var r in results)
-                {
-                    <tr>
-                    <th scope="row">@r.Month</th>
-                    <td>@string.Format("{0:C}", r.TotalPayment)</td>
-                    <td>@string.Format("{0:C}", r.PrincipalPayment)</td>
-                    <td>@string.Format("{0:C}", r.InterestPayment)</td>
-                    <td>@string.Format("{0:C}", r.TotalInterest)</td>
-                    <td>@string.Format("{0:C}", r.TotalPaid)</td>
-                    <td>@string.Format("{0:C}", r.Balance)</td>
-                    @if (loan.AdditionalPrincipal > 0)
-                    {
-                        @if (r.AdditionalPrincipal + r.AdditionalInterest != 0)
+                        @if (loan.AdditionalPrincipal > 0)
                         {
-                            <td>@string.Format("{0:C}", r.AdditionalPrincipal + r.AdditionalInterest)</td>
-                            <td>@string.Format("{0:C}", r.AdditionalPrincipal)</td>
-                            <td>@string.Format("{0:C}", r.AdditionalInterest)</td>
-                            <td>@string.Format("{0:C}", r.AdditionalTotalInterest)</td>
-                            <td>@string.Format("{0:C}", r.AdditionalTotalPrincipal)</td>
-                            <td>@string.Format("{0:C}", r.AdditionalBalance)</td>
-                        }else
-                        {
-                            <td>$--</td>
-                            <td>$--</td>
-                            <td>$--</td>
-                            <td>$--</td>
-                            <td>$--</td>
-                            <td>$--</td>
+                            <th scope="col">Payment</th>
+                            <th scope="col">Principal Paid</th>
+                            <th scope="col">Interest Paid</th>
+                            <th scope="col">Cumulative Interest</th>
+                            <th scope="col">Cumulative Payment</th>
+                            <th scope="col">Remaining Balance</th>
                         }
-
-                    }
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach (var r in results)
+                    {
+                        <tr>
+                            <th scope="row">@r.Month</th>
+                            <td>@string.Format("{0:C}", r.TotalPayment)</td>
+                            <td>@string.Format("{0:C}", r.PrincipalPayment)</td>
+                            <td>@string.Format("{0:C}", r.InterestPayment)</td>
+                            <td>@string.Format("{0:C}", r.TotalInterest)</td>
+                            <td>@string.Format("{0:C}", r.TotalPaid)</td>
+                            <td>@string.Format("{0:C}", r.Balance)</td>
+                            @if (loan.AdditionalPrincipal > 0)
+                            {
+                                @if (r.AdditionalPrincipal + r.AdditionalInterest != 0)
+                                {
+                                    <td>@string.Format("{0:C}", r.AdditionalPrincipal + r.AdditionalInterest)</td>
+                                    <td>@string.Format("{0:C}", r.AdditionalPrincipal)</td>
+                                    <td>@string.Format("{0:C}", r.AdditionalInterest)</td>
+                                    <td>@string.Format("{0:C}", r.AdditionalTotalInterest)</td>
+                                    <td>@string.Format("{0:C}", r.AdditionalTotalPrincipal)</td>
+                                    <td>@string.Format("{0:C}", r.AdditionalBalance)</td>
+                                }
+                                else
+                                {
+                                    <td>$--</td>
+                                    <td>$--</td>
+                                    <td>$--</td>
+                                    <td>$--</td>
+                                    <td>$--</td>
+                                    <td>$--</td>
+                                }
+
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    }
+}
+else
+{
+    <div class="blank-input-chart">
+        <div>
+            <EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary Model="@loan" />
+                <div class="container">
+                    <label id="nameLabel" for="nameText" data-toggle="tooltip" data-placement="top" title="Enter a name for this loan.">Loan Name</label>
+                    <InputText @bind-Value="loan.LoanName" class="form-control" id="nameText" />
+                    <ValidationMessage id="nameMessage" For="@(() => loan.LoanName)" class="text-danger" />
+
+                    <label id="balanceLabel" for="balanceText" data-toggle="tooltip" data-placement="top" title="Enter a loan amount between $10 and $1,000,000,000.">Loan Amount</label>
+                    <InputNumber @bind-Value="loan.Balance" class="form-control" id="balanceText" />
+                    <ValidationMessage id="balanceMessage" For="@(() => loan.Balance)" class="text-danger" />
+
+                    <label id="rateLabel" for="rateSlider" data-toggle="tooltip" data-placement="top" title="Enter an interest rate between 0 and 35 percent.">Loan Rate</label>
+                    <InputNumber id="rateText" @bind-Value="loan.Rate" class="form-control" max="35" min="0" step="0.05"></InputNumber>
+                    <ValidationMessage id="rateMessage" For="@(() => loan.Rate)" class="text-danger" />
+
+                    <label id="termLabel" for="termSlider" data-toggle="tooltip" data-placement="top" title="Enter the loan term in months between 1 and 480.">Loan Term</label>
+                    <InputNumber id="termText" @bind-Value="loan.Term" class="form-control" max="480" min="0" step="6"></InputNumber>
+                    <ValidationMessage id="termMessage" For="@(() => loan.Term)" class="text-danger" />
+
+                    <label id="additionalLabel" for="additionalText" data-toggle="tooltip" data-placement="top" title="Enter any additional amount over the calculated payment you would like to apply to the principal">Additional Principal</label>
+                    <InputNumber id="additionalText" @bind-Value="loan.AdditionalPrincipal" class="form-control" min="0"></InputNumber>
+
+                    <input type="submit" id="formSubmit" value="Calculate Payback" class="btn btn-primary" />
+                    <input type="button" id="backBtn" class="btn btn-outline-primary dash-btn" @onclick="(() => GoToDashboard())" value="Go To Dashboard" />
+                </div>
+
+            </EditForm>
+
+        </div>
+
     </div>
-    
 }
 
+
+
+
 @code {
-    private Models.DisplayLoanConditions loan = new Models.DisplayLoanConditions() { Balance = 10000, Rate = 15.9, Term = 36, AdditionalPrincipal = 200 };
+    private LoanCalculator.Data.ApplicationDbContext _dbContext => new Data.ApplicationDbContext(new Microsoft.EntityFrameworkCore.DbContextOptions<Data.ApplicationDbContext>());
+    private Models.DisplayLoanConditions loan = new Models.DisplayLoanConditions() { LoanName = "New Loan", Balance = 10000, Rate = 15.9, Term = 36, AdditionalPrincipal = 200 };
     private List<DisplayMonthlyResults> results;
 
+    public UserLoans uLoan = new UserLoans();
+
+    public ApplicationUser currentUser;
+
     private bool showTable = false;
+    [Parameter]
+    public int loanId { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authState { get; set; }
+    private System.Security.Claims.ClaimsPrincipal principal;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (loanId > 0)
+        {
+            uLoan = await service.Get(loanId);
+            loan.Balance = Decimal.Round(uLoan.LoanAmount, 2);
+            loan.LoanName = uLoan.LoanName;
+            loan.Rate = uLoan.InterestRate;
+            loan.Term = uLoan.LoanTerm;
+            loan.AdditionalPrincipal = Decimal.Round(uLoan.AdditionalPrincipal, 2);
+
+            ShowResult();
+
+        }
+    }
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+        if (authState != null)
+        {
+            principal = (await authState).User;
+            currentUser = await UserManager.GetUserAsync(principal) as ApplicationUser;
+
+        }
+        if (loanId > 0)
+        {
+            await ShowChart();
+        }
+
+    }
 
     private async Task HandleValidSubmit()
+    {
+        uLoan.User = currentUser;
+        uLoan.LoanName = loan.LoanName;
+        uLoan.LoanAmount = loan.Balance;
+        uLoan.InterestRate = loan.Rate;
+        uLoan.LoanTerm = loan.Term;
+        uLoan.AdditionalPrincipal = loan.AdditionalPrincipal;
+
+        ShowResult();
+        await ShowChart();
+        Console.WriteLine(uLoan.User.Id + ": " + uLoan.User.FName + " - " + loan.Term);
+
+        if (uLoan.Id != 0)
+        {
+            await service.Update(uLoan);
+
+        }
+        else
+        {
+            UserLoans temp = await service.Add(uLoan);
+            uLoan.Id = temp.Id;
+            loanId = uLoan.Id;
+            //this.StateHasChanged();
+        }
+    }
+
+    private async Task GenerateChartBlazor()
+    {
+        await jsRunTime.InvokeVoidAsync("GenerateLineGraph", results);
+    }
+
+    private void ShowResult()
     {
         results = new List<DisplayMonthlyResults>();
         List<IMonthlyResults> monthly = Methods.CalculateResults(loan);
@@ -161,12 +295,17 @@
             });
         }
         showTable = true;
-        await GenerateChartBlazor();
-        Console.WriteLine(loan.Balance + ": " + loan.Rate + " - " + loan.Term);
+
     }
 
-    private async Task GenerateChartBlazor()
+    private async Task ShowChart()
     {
-        await jsRunTime.InvokeVoidAsync("GenerateLineGraph", results);
+        await GenerateChartBlazor();
+    }
+
+
+    private void GoToDashboard()
+    {
+        NavManager.NavigateTo($"/");
     }
 }
