@@ -274,7 +274,7 @@ a.link-nav:not([href]):not([tabindex]) {
     color: var(--base-font);
     display: grid;
     margin-inline: auto;
-    max-width: 20rem;
+    max-width: 25rem;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
     margin-bottom: 1rem;
