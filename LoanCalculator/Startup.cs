@@ -80,6 +80,8 @@ namespace LoanCalculator
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseMiddleware<BlazorCookieLoginMiddleware>();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

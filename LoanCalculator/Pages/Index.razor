@@ -2,6 +2,8 @@
 @page "/{LoanId:int}"
 
 @inject NavigationManager NavManager
+@inject SignInManager<IdentityUser> _signInManager
+@inject UserManager<IdentityUser> _userManager
 
 
 <AuthorizeView>
@@ -11,47 +13,62 @@
     <NotAuthorized>
         <body class="white-body">
             <section class="banner">
-                <h2>
-                    Welcome to Personal Loan Tracker
-                </h2>
-
-                <p>
-                    Your one-stop shop for calculating and managing loans
-                </p>
+                <div class="flex-auto">
+                    <div class="flex-auto">
+                        <h2>Welcome to Personal Loan Calculator</h2>
+                        <p>Your one-stop shop for calculating and managing loans</p>
+                    </div>
+                    <img src="images/PLCLogo.svg" alt="PLC Logo" class="logo"/>
+                </div>
+                
+                
             </section>
-            <div class="firstSection">
-                <section class="loanExplain">
-                    <img src="images/loanInputs.png" alt="Alternate Text" class="loanExplain__img" />
-                </section>
-                <section class="loanExplainDesc">
-                    <h4>Amortization Calculations</h4>
-                    <p>Input simple parameters to automatically calculate the amortization of any simple loan</p>
-                </section>
-            </div>
+            <section class="plain-section">
+                <div class="flex-auto">
+                    <section class="loanExplain">
+                        <img src="images/loanInputs.png" alt="Alternate Text" class="loanExplain__img" />
+                    </section>
+                    <section class="loanExplainDesc">
+                        <h4>Amortization Calculations</h4>
+                        <p>Input simple parameters to automatically calculate the amortization of any simple loan</p>
+                    </section>
+                </div>
+                
+            </section>
 
-            <div class="secondSection">
-                <section class="whatIfExplainDesc">
-                    <h4>Perform What If Analysis</h4>
-                    <p>Add the optional "Additional Principal" value to see how much you will save in interested by paying a little extra each time</p>
-                </section>
-                <section class="whatIfExplain">
-                    <img src="images/whatIf.png" alt="Alternate Text" class="whatIfExplain__img" />
-                </section>
-            </div>
+            <section class="color-section">
+                <div class="flex-auto">
+                    <section class="whatIfExplainDesc">
+                        <h4>Perform What If Analysis</h4>
+                        <p>Add the optional "Additional Principal" value to see how much you will save in interested by paying a little extra each time</p>
+                    </section>
+                    <section class="whatIfExplain">
+                        <img src="images/whatIf.png" alt="Alternate Text" class="whatIfExplain__img" />
+                    </section>
+                </div>
+                
+            </section>
 
-            <div class="thirdSection">
-                <section class="DashboardExplain">
-                    <img src="images/Dashboard.png" alt="Alternate Text" class="DashboardExplain__img" />
-                </section>
-                <section class="DashboardExplainDesc">
-                    <h4>Dashboard Overview</h4>
-                    <p>Save multiple loans and review the total monthly impact at a glance with the minimalist dashboard</p>
-                </section>
-            </div>
-            <div class="ctaSection">
-                <section class="cta">
-                    <a class="cta-btn btn btn-primary" href="Identity/Account/Register">Register Today!</a>
-                </section>
+            <section class="plain-section">
+                <div class="flex-auto">
+                    <section class="DashboardExplain">
+                        <img src="images/Dashboard.png" alt="Alternate Text" class="DashboardExplain__img" />
+                    </section>
+                    <section class="DashboardExplainDesc">
+                        <h4>Dashboard Overview</h4>
+                        <p>Save multiple loans and review the total monthly impact at a glance with the minimalist dashboard</p>
+                    </section>
+                </div>
+                
+            </section>
+            <div class="color-section">
+                <div class="flex-auto">
+                    <section class="cta">
+                        <a class="cta-btn btn btn-primary" href="Identity/Account/Register">Register Today!</a>
+                        <a class="cta-btn btn btn-primary" @onclick="DemoUser">Login w/ Demo</a>
+                    </section>
+                </div>
+                
             </div>
 
         </body>
@@ -63,5 +80,27 @@
 
     [Parameter]
     public int LoanId { get; set; }
+
+    private async Task DemoUser()
+    {
+        string email = "demo@demo.com";
+        string pswd = "Demo123!";
+        var usr = await _userManager.FindByEmailAsync(email);
+        if(usr is null)
+        {
+            return;
+        }
+        if(await _signInManager.CanSignInAsync(usr))
+        {
+            var result = await _signInManager.CheckPasswordSignInAsync(usr, pswd, true);
+            if(result == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                BlazorCookieLoginMiddleware.Logins[key] = new LoginInfo { Email = email, Password = pswd };
+                NavManager.NavigateTo($"/login?key={key}", true);
+            }
+        }
+
+    }
 
 }
