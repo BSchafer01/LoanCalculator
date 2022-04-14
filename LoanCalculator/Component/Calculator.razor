@@ -6,74 +6,90 @@
 @if (loanId > 0)
 {
     <div class="input-chart">
-        <div>
-            <EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
-                <DataAnnotationsValidator />
-                <ValidationSummary Model="@loan" />
-                <div class="container">
-                    <label id="nameLabel" for="nameText" data-toggle="tooltip" data-placement="top" title="Enter a name for this loan.">Loan Name</label>
-                    <InputText @bind-Value="loan.LoanName" class="form-control" id="nameText" />
-                    <ValidationMessage id="nameMessage" For="@(() => loan.LoanName)" class="text-danger" />
+        <div class="col-1-grid">
+            <div>
+                <EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary Model="@loan" />
+                    <div class="edit-card">
+                        <div>
+                            <label id="nameLabel" for="nameText" data-toggle="tooltip" data-placement="top" title="Enter a name for this loan.">Name</label>
+                            <InputText @bind-Value="loan.LoanName" class="form-control" id="nameText" />
+                            <ValidationMessage id="nameMessage" For="@(() => loan.LoanName)" class="text-danger" />
+                        </div>
+                        
+                        <div>
+                            <label id="balanceLabel" for="balanceText" data-toggle="tooltip" data-placement="top" title="Enter a loan amount between $10 and $1,000,000,000.">Amount</label>
+                            <InputNumber @bind-Value="loan.Balance" class="form-control" id="balanceText" />
+                            <ValidationMessage id="balanceMessage" For="@(() => loan.Balance)" class="text-danger" />
+                        </div>
+                        
+                        <div>
+                            <label id="rateLabel" for="rateSlider" data-toggle="tooltip" data-placement="top" title="Enter an interest rate between 0 and 35 percent.">Rate</label>
+                            <InputNumber id="rateText" @bind-Value="loan.Rate" class="form-control" max="35" min="0" step="0.05"></InputNumber>
+                            <ValidationMessage id="rateMessage" For="@(() => loan.Rate)" class="text-danger" />
+                        </div>
+                        
+                        <div>
+                            <label id="termLabel" for="termSlider" data-toggle="tooltip" data-placement="top" title="Enter the loan term in months between 1 and 480.">Term</label>
+                            <InputNumber id="termText" @bind-Value="loan.Term" class="form-control" max="480" min="0" step="6"></InputNumber>
+                            <ValidationMessage id="termMessage" For="@(() => loan.Term)" class="text-danger" />
+                        </div>
+                        
+                        <div>
+                            <label id="additionalLabel" for="additionalText" data-toggle="tooltip" data-placement="top" title="Enter any additional amount over the calculated payment you would like to apply to the principal">Additional</label>
+                            <InputNumber id="additionalText" @bind-Value="loan.AdditionalPrincipal" class="form-control" min="0"></InputNumber>
+                        </div>
+                        
+                        <div class="buttons">
+                            <input type="submit" id="formSubmit" value="Calculate Payback" class="btn btn-primary" />
+                            <input type="button" id="backBtn" class="btn btn-outline-primary dash-btn" @onclick="(() => GoToDashboard())" value="Go To Dashboard" />
+                        </div>
+                        
+                    </div>
 
-                    <label id="balanceLabel" for="balanceText" data-toggle="tooltip" data-placement="top" title="Enter a loan amount between $10 and $1,000,000,000.">Loan Amount</label>
-                    <InputNumber @bind-Value="loan.Balance" class="form-control" id="balanceText" />
-                    <ValidationMessage id="balanceMessage" For="@(() => loan.Balance)" class="text-danger" />
-
-                    <label id="rateLabel" for="rateSlider" data-toggle="tooltip" data-placement="top" title="Enter an interest rate between 0 and 35 percent.">Loan Rate</label>
-                    <InputNumber id="rateText" @bind-Value="loan.Rate" class="form-control" max="35" min="0" step="0.05"></InputNumber>
-                    <ValidationMessage id="rateMessage" For="@(() => loan.Rate)" class="text-danger" />
-
-                    <label id="termLabel" for="termSlider" data-toggle="tooltip" data-placement="top" title="Enter the loan term in months between 1 and 480.">Loan Term</label>
-                    <InputNumber id="termText" @bind-Value="loan.Term" class="form-control" max="480" min="0" step="6"></InputNumber>
-                    <ValidationMessage id="termMessage" For="@(() => loan.Term)" class="text-danger" />
-
-                    <label id="additionalLabel" for="additionalText" data-toggle="tooltip" data-placement="top" title="Enter any additional amount over the calculated payment you would like to apply to the principal">Additional Principal</label>
-                    <InputNumber id="additionalText" @bind-Value="loan.AdditionalPrincipal" class="form-control" min="0"></InputNumber>
-
-                    <input type="submit" id="formSubmit" value="Calculate Payback" class="btn btn-primary" />
-                    <input type="button" id="backBtn" class="btn btn-outline-primary dash-btn" @onclick="(() => GoToDashboard())" value="Go To Dashboard" />
-                </div>
-
-            </EditForm>
-
-        </div>
-
-        @if (showTable)
-        {
-            <div class="results-container">
-                <h3 id="results-title">@loan.LoanName Metrics</h3>
-                <div id="base">
-                    <h4 id="basePayments">Base Payments</h4>
-                    <h5>Monthly Payment: </h5>
-                    <h5><b>@string.Format("{0:C}", results[0].TotalPayment)</b></h5>
-                    <h5>Final Payment: </h5>
-                    <h5><b>Month @results.Last().Month</b></h5>
-                    <h5>Total Interest: </h5>
-                    <h5><b>@string.Format("{0:C}", results.Last().TotalInterest)</b></h5>
-                    <h5></h5>
-                    <h5></h5>
-
-                </div>
-
-                <div id="additional">
-                    <h4 id="additionalPayments">Additional Payments</h4>
-                    <h5>Monthly Payment: </h5>
-                    <h5><b>@(string.Format("{0:C}", results[0].AdditionalInterest + results[0].AdditionalPrincipal))</b></h5>
-                    <h5>Early Payoff: </h5>
-                    <h5><b>Month @(results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().Month)</b></h5>
-                    <h5>Total Interest: </h5>
-                    <h5><b>@(string.Format("{0:C}", results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></h5>
-                    <h5>Total Savings: </h5>
-                    <h5><b>@(string.Format("{0:C}", results.Last().TotalInterest - results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></h5>
-                </div>
+                </EditForm>
 
             </div>
 
-        }
+            @if (showTable)
+            {
+                <div class="results-container">
+                    <h3 id="results-title">@loan.LoanName Metrics</h3>
+                    <div id="base">
+                        <h4 id="basePayments">Base Payments</h4>
+                        <p>Monthly Payment: </p>
+                        <p><b>@string.Format("{0:C}", results[0].TotalPayment)</b></p>
+                        <p>Final Payment: </p>
+                        <p><b>Month @results.Last().Month</b></p>
+                        <p>Total Interest: </p>
+                        <p><b>@string.Format("{0:C}", results.Last().TotalInterest)</b></p>
+                        <p></p>
+                        <p></p>
+
+                    </div>
+
+                    <div id="additional">
+                        <h4 id="additionalPayments">Additional Payments</h4>
+                        <p>Monthly Payment: </p>
+                        <p><b>@(string.Format("{0:C}", results[0].AdditionalInterest + results[0].AdditionalPrincipal))</b></p>
+                        <p>Early Payoff: </p>
+                        <p><b>Month @(results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().Month)</b></p>
+                        <p>Total Interest: </p>
+                        <p><b>@(string.Format("{0:C}", results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></p>
+                        <p>Total Savings: </p>
+                        <p><b>@(string.Format("{0:C}", results.Last().TotalInterest - results.Where(x => x.AdditionalInterest == results.Where(x => x.AdditionalInterest > 0).Min(x => x.AdditionalInterest)).FirstOrDefault().AdditionalTotalInterest))</b></p>
+                    </div>
+
+                </div>
+
+            }
+        </div>
+        
+
         <div id="chartdiv"></div>
     </div>
 
-    <br />
     <br />
 
     @if (showTable)
@@ -155,7 +171,7 @@ else
             <EditForm Model="@loan" OnValidSubmit="HandleValidSubmit">
                 <DataAnnotationsValidator />
                 <ValidationSummary Model="@loan" />
-                <div class="container">
+                <div class="container-card">
                     <label id="nameLabel" for="nameText" data-toggle="tooltip" data-placement="top" title="Enter a name for this loan.">Loan Name</label>
                     <InputText @bind-Value="loan.LoanName" class="form-control" id="nameText" />
                     <ValidationMessage id="nameMessage" For="@(() => loan.LoanName)" class="text-danger" />

@@ -1,5 +1,6 @@
 ﻿@inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
+@inject NavigationManager NavManager
 
 <AuthorizeView>
     <Authorized>
@@ -10,8 +11,9 @@
         </form>
     </Authorized>
     <NotAuthorized>
-        <a href="Identity/Account/Register">Register</a>
-        <a href="Identity/Account/Login">Log in</a>
+        <a class="link-nav" href="Identity/Account/Register">Register</a>
+        <a class="link-nav" href="Identity/Account/Login">Log in</a>
+        <a class="link-nav" @onclick="DemoUser">Login w/ Demo</a>
     </NotAuthorized>
 </AuthorizeView>
 
@@ -34,6 +36,28 @@
         //    }
 
         //}
+
+    }
+
+    private async Task DemoUser()
+    {
+        string email = "demo@demo.com";
+        string pswd = "Demo123!";
+        var usr = await UserManager.FindByEmailAsync(email);
+        if(usr is null)
+        {
+            return;
+        }
+        if(await SignInManager.CanSignInAsync(usr))
+        {
+            var result = await SignInManager.CheckPasswordSignInAsync(usr, pswd, true);
+            if(result == SignInResult.Success)
+            {
+                Guid key = Guid.NewGuid();
+                BlazorCookieLoginMiddleware.Logins[key] = new LoginInfo { Email = email, Password = pswd };
+                NavManager.NavigateTo($"/login?key={key}", true);
+            }
+        }
 
     }
 

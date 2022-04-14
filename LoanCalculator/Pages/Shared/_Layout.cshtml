@@ -10,11 +10,32 @@
     <title>@ViewData["Title"] - LoanCalculator</title>
     <link rel="stylesheet" href="~/Identity/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/Identity/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light navbar-toggleable-sm bg-white border-bottom box-shadow mb-3">
-            <div class="container">
+        <nav class="top-row px-4 auth navbar alt-navbar">
+            <div class="top-flex">
+            <a class="navbar-brand" href="/">Personal Loan Calculator</a>
+            <div class="nav-flex">
+                @{
+                        var result = Engine.FindView(ViewContext, "_LoginPartial", isMainPage: false);
+                    }
+                    @if (result.Success)
+                    {
+                        await Html.RenderPartialAsync("_LoginPartial");
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("The default Identity UI layout requires a partial view '_LoginPartial' " +
+                            "usually located at '/Pages/_LoginPartial' or at '/Views/Shared/_LoginPartial' to work. Based on your configuration " +
+                            $"we have looked at it in the following locations: {System.Environment.NewLine}{string.Join(System.Environment.NewLine, result.SearchedLocations)}.");
+                    }
+                <a href="https://github.com/BSchafer01/LoanCalculator" target="_blank"><i class="fab fa-github fa-2x" /></a>
+            </div>
+        
+        </div>
+           @* <div class="container">
                 <a class="navbar-brand" href="~/">LoanCalculator</a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -35,11 +56,11 @@
                             $"we have looked at it in the following locations: {System.Environment.NewLine}{string.Join(System.Environment.NewLine, result.SearchedLocations)}.");
                     }
                 </div>
-            </div>
+            </div>*@
         </nav>
     </header>
 
-    <div class="container">
+    <div class="container my-class">
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
